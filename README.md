@@ -1,56 +1,84 @@
-# Welcome to your Expo app 👋
+# Zynyo Inbox App 📬
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern, high-performance, universal React Native inbox application built using **Expo SDK 56**, **Expo Router (File-Based Routing)**, and **TypeScript**. The app showcases a clean, iOS-inspired user interface designed for reading message notifications, complete with global preferences management, adaptive layout densities, and native-feeling dark and light themes.
 
-## Get started
+---
 
-1. Install dependencies
+## 🚀 Key Features
 
-   ```bash
-   npm install
-   ```
+*   **Dynamic Theming**: Full support for **Light Mode**, **Dark Mode**, and **System Default** settings. Navigation headers and backgrounds adapt smoothly using native rendering.
+*   **Inbox Density Layouts**: Customize the visual density of the inbox screen. Switch between:
+    *   `Comfortable`: Spaced-out rows with generous breathing room (16px vertical padding).
+    *   `Compact`: High-information density list (8px vertical padding).
+*   **Global Preferences State**: Managed via a React Context API wrapper (`PreferencesContext`), allowing multiple pages to instantly adapt to configuration changes (e.g. notifications, badges, theme, layout).
+*   **iOS & Android Native Conventions**: Uses native headers, translucent navigation panels, platform-specific icons (Ionicons), and native Alert dialogs.
+*   **Strict Type-Checking**: Developed entirely in TypeScript with strict compilation validation.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🛠 Tech Stack
 
-In the output, you'll find options to open the app in a
+*   **Framework**: Expo (SDK 56)
+*   **Router**: Expo Router (v2 / v56 File-based Navigation)
+*   **Package Manager**: `pnpm`
+*   **State Management**: React Context (`PreferencesContext`)
+*   **Icons**: `@expo/vector-icons` (Ionicons)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## 📦 Project Structure
 
 ```bash
-npm run reset-project
+zynyo-inbox-app/
+├── src/
+│   ├── app/                      # Expo Router screen entrypoints
+│   │   ├── _layout.tsx           # Application root wrapper, global state provider & theme provider
+│   │   ├── index.tsx             # Inbox feed screen displaying inbox items
+│   │   └── settings.tsx          # Settings screen containing preferences toggles and dialogs
+│   ├── constants/
+│   │   ├── data.ts               # Static screen layout data and mock inbox records
+│   │   └── theme.ts              # Dynamic styling tokens (light/dark colors, spacing, typography)
+│   └── context/
+│   │   └── PreferencesContext.tsx # React Context and hooks managing global preferences
+├── assets/                       # Images and static static assets
+├── tsconfig.json                 # Strict TypeScript configuration
+└── package.json                  # Dependencies configuration
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## 💻 Getting Started
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### 1. Prerequisites
+Make sure you have [Node.js](https://nodejs.org/) installed on your machine. This project utilizes `pnpm` as its package manager.
 
-## Learn more
+### 2. Install Dependencies
+Run the following command in the root folder:
+```bash
+pnpm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### 3. Start the Development Server
+Fire up the Metro bundler:
+```bash
+pnpm start
+```
+You can clear the bundler cache during start using:
+```bash
+pnpm start -c
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 4. Running on Device / Simulator
+Once the Metro bundler is running, you can open the app on your preferred platform:
+*   Press `i` or run `pnpm ios` to boot the iOS Simulator.
+*   Press `a` or run `pnpm android` to boot the Android Emulator.
+*   Press `w` or run `pnpm web` to open the app inside the web browser.
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## 🧪 Validation & Type-Checking
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+To run static type-checking and ensure code validity:
+```bash
+./node_modules/.bin/tsc --noEmit
+```
