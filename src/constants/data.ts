@@ -92,6 +92,7 @@ export type SettingsItem = {
   type: "link" | "toggle" | "value" | "action";
   value?: string | boolean;
   color?: string; // Marks color as optional
+  href?: any;
 };
 
 export type SettingsSection = {

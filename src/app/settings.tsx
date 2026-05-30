@@ -1,6 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Link, Stack } from "expo-router";
+import { useState } from "react";
 import {
+    Alert,
     Pressable,
     SectionList,
     StyleSheet,
@@ -12,55 +14,125 @@ import { SETTINGS_SECTIONS, SettingsItem } from "../constants/data";
 import { colors, fontSizes, iconSizes, spacing } from "../constants/theme";
 
 export default function SettingsScreen() {
-  // Renders each individual row based on its "type"
-  const renderItem = ({ item }: { item: SettingsItem }) => (
-    <Pressable
-      style={({ pressed }) => [
-        styles.row,
-        // Slight highlight when tapping a link or action
-        pressed &&
-          (item.type === "link" || item.type === "action") && {
-            backgroundColor: colors.settings.pressed,
-          },
-      ]}
-    >
-      <View style={styles.rowIconContainer}>
-        {/* If the item has a specific color (like logout), use it. Otherwise use iOS Blue */}
-        <Ionicons
-          name={item.icon as any}
-          size={iconSizes.s_medium}
-          color={item.color || colors.primary}
-        />
-      </View>
+  // 1. Initialize our local state
+  const [prefs, setPrefs] = useState({
+    push: true,
+    badges: true,
+    theme: "System",
+    density: "Comfortable",
+  });
 
-      <Text style={[styles.rowLabel, item.color && { color: item.color }]}>
-        {item.label}
-      </Text>
+  // 2. Map over your static imported data to inject the live state
+  const dynamicSections = SETTINGS_SECTIONS.map((section) => ({
+    ...section,
+    data: section.data.map((item) => {
+      if (item.id === "push") return { ...item, value: prefs.push };
+      if (item.id === "badges") return { ...item, value: prefs.badges };
+      if (item.id === "theme") return { ...item, value: prefs.theme };
+      if (item.id === "density") return { ...item, value: prefs.density };
+      return item;
+    }),
+  }));
 
-      <View style={styles.rowRight}>
-        {item.type === "link" && (
+  // 3. Handle native alert popups for "value" types
+  const handlePress = (item: SettingsItem) => {
+    if (item.id === "theme") {
+      Alert.alert("Select Theme", "Choose your preferred app theme.", [
+        {
+          text: "Light",
+          onPress: () => setPrefs({ ...prefs, theme: "Light" }),
+        },
+        { text: "Dark", onPress: () => setPrefs({ ...prefs, theme: "Dark" }) },
+        {
+          text: "System Default",
+          onPress: () => setPrefs({ ...prefs, theme: "System" }),
+        },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    } else if (item.id === "density") {
+      Alert.alert("Inbox Density", "", [
+        {
+          text: "Compact",
+          onPress: () => setPrefs({ ...prefs, density: "Compact" }),
+        },
+        {
+          text: "Comfortable",
+          onPress: () => setPrefs({ ...prefs, density: "Comfortable" }),
+        },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    }
+  };
+
+  const renderItem = ({ item }: { item: SettingsItem }) => {
+    // Extract the inner UI so we can conditionally wrap it in a Link or Pressable
+    const InnerRow = (
+      <View style={styles.row}>
+        <View style={styles.rowIconContainer}>
           <Ionicons
-            name="chevron-forward"
-            size={iconSizes.small}
-            color={colors.settings.chevron}
+            name={item.icon as any}
+            size={iconSizes.s_medium}
+            color={item.color || colors.primary}
           />
-        )}
-        {item.type === "value" && (
-          <Text style={styles.rowValue}>{item.value}</Text>
-        )}
-        {item.type === "toggle" && (
-          <Switch
-            value={item.value as boolean}
-            // The switch visual state won't change since we're using static data,
-            // but this prevents a warning
-            onValueChange={() => {}}
-          />
-        )}
-      </View>
-    </Pressable>
-  );
+        </View>
 
-  // Renders the gray headers above each group
+        <Text style={[styles.rowLabel, item.color && { color: item.color }]}>
+          {item.label}
+        </Text>
+
+        <View style={styles.rowRight}>
+          {item.type === "link" && (
+            <Ionicons
+              name="chevron-forward"
+              size={iconSizes.small}
+              color={colors.settings.chevron}
+            />
+          )}
+          {item.type === "value" && (
+            <Text style={styles.rowValue}>{item.value}</Text>
+          )}
+          {item.type === "toggle" && (
+            <Switch
+              value={item.value as boolean}
+              onValueChange={(newValue) =>
+                setPrefs({ ...prefs, [item.id]: newValue })
+              }
+            />
+          )}
+        </View>
+      </View>
+    );
+
+    // If it's a link (and you added an href to your data.ts), use Expo Router Link
+    if (item.type === "link" && (item as any).href) {
+      return (
+        <Link href={(item as any).href} asChild>
+          <Pressable
+            style={({ pressed }) =>
+              pressed && { backgroundColor: colors.settings.pressed }
+            }
+          >
+            {InnerRow}
+          </Pressable>
+        </Link>
+      );
+    }
+
+    // Otherwise, it's an action, toggle, or value item
+    return (
+      <Pressable
+        onPress={() => handlePress(item)}
+        disabled={item.type === "toggle"} // Let the Switch handle the tap
+        style={({ pressed }) =>
+          pressed &&
+          item.type !== "toggle" && { backgroundColor: colors.settings.pressed }
+        }
+      >
+        {InnerRow}
+      </Pressable>
+    );
+  };
+
   const renderSectionHeader = ({ section }: { section: { title: string } }) => (
     <Text style={styles.sectionHeader}>{section.title.toUpperCase()}</Text>
   );
@@ -70,13 +142,13 @@ export default function SettingsScreen() {
       <Stack.Screen options={{ title: "Settings", headerLargeTitle: true }} />
       <SectionList
         style={styles.container}
-        sections={SETTINGS_SECTIONS}
+        sections={dynamicSections} // <-- Feed it the mapped array
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         contentContainerStyle={styles.contentContainer}
-        contentInsetAdjustmentBehavior="automatic" // Connects to large title
-        stickySectionHeadersEnabled={false} // Native iOS settings headers scroll away
+        contentInsetAdjustmentBehavior="automatic"
+        stickySectionHeadersEnabled={false}
       />
     </>
   );
@@ -85,7 +157,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.settings.background, // Standard iOS grouped settings background
+    backgroundColor: colors.settings.background,
   },
   contentContainer: {
     paddingBottom: spacing.xlarge,
@@ -112,7 +184,7 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     flex: 1,
-    fontSize: fontSizes.bodyLarge, // Native iOS body font size
+    fontSize: fontSizes.bodyLarge,
     color: colors.settings.labelText,
   },
   rowRight: {
