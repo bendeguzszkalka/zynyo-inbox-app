@@ -10,19 +10,24 @@ import {
 } from "react-native";
 import { INBOX_DATA } from "../constants/data";
 import {
-  colors,
   fontSizes,
   fontWeights,
   iconSizes,
   spacing,
 } from "../constants/theme";
+import { usePreferences } from "../context/PreferencesContext";
 
 export default function InboxScreen() {
+  const { preferences, themeColors } = usePreferences();
+
+  // Determine row spacing based on selected density
+  const verticalPadding = preferences.density === "Compact" ? spacing.xs : spacing.medium;
+
   // FlatList requires a "renderItem" function to know what UI to build
   const renderMessage = ({ item }: { item: (typeof INBOX_DATA)[0] }) => (
-    <View style={styles.messageRow}>
-      <Text style={styles.senderText}>{item.sender}</Text>
-      <Text style={styles.messageText}>{item.message}</Text>
+    <View style={[styles.messageRow, { paddingVertical: verticalPadding, borderBottomColor: themeColors.border }]}>
+      <Text style={[styles.senderText, { color: themeColors.settings.labelText }]}>{item.sender}</Text>
+      <Text style={[styles.messageText, { color: themeColors.text }]}>{item.message}</Text>
     </View>
   );
 
@@ -42,8 +47,8 @@ export default function InboxScreen() {
                       Platform.OS === "ios" ? "settings-outline" : "settings"
                     }
                     size={iconSizes.medium}
-                    // Use native iOS blue or standard Android dark gray
-                    color={colors.primary}
+                    // Use dynamic primary color
+                    color={themeColors.primary}
                     style={{ opacity: pressed ? 0.5 : 1 }}
                   />
                 )}
@@ -54,7 +59,7 @@ export default function InboxScreen() {
       />
 
       <FlatList
-        style={styles.container}
+        style={[styles.container, { backgroundColor: themeColors.background }]}
         data={INBOX_DATA} // 1. Pass in your array
         keyExtractor={(item) => item.id} // 2. Tell it how to find the unique ID
         renderItem={renderMessage} // 3. Pass in your UI function
@@ -66,17 +71,15 @@ export default function InboxScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   scrollContent: { paddingHorizontal: spacing.medium },
   messageRow: {
-    paddingVertical: spacing.medium,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
   },
   senderText: {
     fontSize: fontSizes.heading,
     fontWeight: fontWeights.bold,
     marginBottom: spacing.small,
   },
-  messageText: { fontSize: fontSizes.body, color: colors.text },
+  messageText: { fontSize: fontSizes.body },
 });

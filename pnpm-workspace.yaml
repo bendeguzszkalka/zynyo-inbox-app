@@ -1,5 +1,6 @@
 allowBuilds:
   msgpackr-extract: true
+  unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@expo/cli@56.1.13'
   - '@expo/package-manager@1.12.1'
