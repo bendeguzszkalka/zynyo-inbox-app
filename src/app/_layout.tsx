@@ -14,7 +14,7 @@ function RootLayoutNav() {
       ...baseTheme.colors,
       primary: themeColors.primary,
       background: themeColors.background,
-      card: isDark ? "#1C1C1E" : "#FFFFFF", // Navigation bar background
+      card: themeColors.card, // Navigation bar background
       text: themeColors.settings.labelText, // Header title text color
       border: themeColors.settings.separator, // Navigation bar border
       notification: themeColors.destructive,

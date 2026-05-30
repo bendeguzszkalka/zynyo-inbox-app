@@ -4,6 +4,7 @@ export const lightColors = {
   primary: Platform.OS === "ios" ? "#007AFF" : "#49454F",
   background: "#FFFFFF",
   border: "#CCCCCC",
+  card: "#FFFFFF",
   text: "#666666",
   destructive: "#FF3B30",
   // iOS-specific system colors for settings screen
@@ -23,6 +24,7 @@ export const darkColors = {
   primary: Platform.OS === "ios" ? "#0A84FF" : "#D0BCFF",
   background: "#121212",
   border: "#333333",
+  card: "#1C1C1E",
   text: "#E0E0E0",
   destructive: "#FF453A",
   // iOS-specific system colors for settings screen
