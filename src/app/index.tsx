@@ -8,92 +8,14 @@ import {
   Text,
   View,
 } from "react-native";
-
-const INBOX_DATA = [
-  {
-    id: "1",
-    sender: "GitHub",
-    message: "Dependabot alert: update your packages.",
-  },
-  {
-    id: "2",
-    sender: "Hackathon Organizers",
-    message: "Pizza has arrived in the lobby!",
-  },
-  {
-    id: "3",
-    sender: "Zynyo",
-    message: "Please sign the document.",
-  },
-  {
-    id: "4",
-    sender: "Vercel",
-    message: "Your deployment 'zynyo-inbox-app-xyz' is ready.",
-  },
-  {
-    id: "5",
-    sender: "Slack",
-    message: "You have a new message from John Doe.",
-  },
-  { id: "6", sender: "Jira", message: "TICKET-123 has been updated." },
-  {
-    id: "7",
-    sender: "Figma",
-    message: "Jane shared a new design file with you.",
-  },
-  {
-    id: "8",
-    sender: "Google Calendar",
-    message: "Reminder: Team Standup in 15 minutes.",
-  },
-  {
-    id: "9",
-    sender: "Notion",
-    message: "A page was shared with you: 'Project Phoenix Specs'.",
-  },
-  {
-    id: "10",
-    sender: "Linear",
-    message: "New issue assigned to you: 'Fix login button'.",
-  },
-  { id: "11", sender: "Sentry", message: "New error detected in production." },
-  {
-    id: "12",
-    sender: "Stripe",
-    message: "Your monthly payout has been processed.",
-  },
-  {
-    id: "13",
-    sender: "Miro",
-    message: "You were mentioned on the 'Q4 Planning' board.",
-  },
-  {
-    id: "14",
-    sender: "Zoom",
-    message: "Your meeting '1:1 with Sarah' is starting now.",
-  },
-  {
-    id: "15",
-    sender: "AWS",
-    message:
-      "Billing Alert: Your estimated charges have exceeded the threshold.",
-  },
-  {
-    id: "16",
-    sender: "DocuSign",
-    message: "Completed: Please review the signed document.",
-  },
-  {
-    id: "17",
-    sender: "Expo",
-    message: "A new build for your project is available.",
-  },
-  {
-    id: "18",
-    sender: "OpenAI",
-    message: "Your API usage for the month is approaching its limit.",
-  },
-];
+import { INBOX_DATA } from "../constants/data";
+import {
+  colors,
+  fontSizes,
+  fontWeights,
+  iconSizes,
+  spacing,
+} from "../constants/theme";
 
 export default function InboxScreen() {
   // FlatList requires a "renderItem" function to know what UI to build
@@ -119,9 +41,9 @@ export default function InboxScreen() {
                     name={
                       Platform.OS === "ios" ? "settings-outline" : "settings"
                     }
-                    size={24}
+                    size={iconSizes.medium}
                     // Use native iOS blue or standard Android dark gray
-                    color={Platform.OS === "ios" ? "#007AFF" : "#49454F"}
+                    color={colors.primary}
                     style={{ opacity: pressed ? 0.5 : 1 }}
                   />
                 )}
@@ -144,13 +66,17 @@ export default function InboxScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  scrollContent: { paddingHorizontal: 16 },
+  container: { flex: 1, backgroundColor: colors.background },
+  scrollContent: { paddingHorizontal: spacing.medium },
   messageRow: {
-    paddingVertical: 16,
+    paddingVertical: spacing.medium,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#ccc",
+    borderBottomColor: colors.border,
   },
-  senderText: { fontSize: 16, fontWeight: "bold", marginBottom: 4 },
-  messageText: { fontSize: 14, color: "#666" },
+  senderText: {
+    fontSize: fontSizes.heading,
+    fontWeight: fontWeights.bold,
+    marginBottom: spacing.small,
+  },
+  messageText: { fontSize: fontSizes.body, color: colors.text },
 });

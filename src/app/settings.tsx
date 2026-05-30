@@ -8,121 +8,8 @@ import {
     Text,
     View,
 } from "react-native";
-
-type SettingsItem = {
-  id: string;
-  label: string;
-  icon: string;
-  type: "link" | "toggle" | "value" | "action";
-  value?: string | boolean;
-  color?: string; // Marks color as optional
-};
-
-type SettingsSection = {
-  title: string;
-  data: SettingsItem[];
-};
-
-const SETTINGS_SECTIONS: SettingsSection[] = [
-  {
-    title: "Account",
-    data: [
-      {
-        id: "profile",
-        label: "Profile & Name",
-        icon: "person-outline",
-        type: "link",
-      },
-      {
-        id: "aliases",
-        label: "Email Aliases",
-        icon: "mail-outline",
-        type: "link",
-      },
-      {
-        id: "signature",
-        label: "Signature",
-        icon: "create-outline",
-        type: "link",
-      },
-    ],
-  },
-  {
-    title: "Notifications",
-    data: [
-      {
-        id: "push",
-        label: "Push Notifications",
-        icon: "notifications-outline",
-        type: "toggle",
-        value: true,
-      },
-      {
-        id: "badges",
-        label: "App Icon Badges",
-        icon: "alert-circle-outline",
-        type: "toggle",
-        value: true,
-      },
-      {
-        id: "dnd",
-        label: "Do Not Disturb",
-        icon: "moon-outline",
-        type: "link",
-      },
-    ],
-  },
-  {
-    title: "Appearance & Behavior",
-    data: [
-      {
-        id: "theme",
-        label: "Theme",
-        icon: "color-palette-outline",
-        type: "value",
-        value: "System",
-      },
-      {
-        id: "swipe",
-        label: "Swipe Actions",
-        icon: "swap-horizontal-outline",
-        type: "link",
-      },
-      {
-        id: "density",
-        label: "Inbox Density",
-        icon: "list-outline",
-        type: "value",
-        value: "Comfortable",
-      },
-    ],
-  },
-  {
-    title: "About",
-    data: [
-      {
-        id: "help",
-        label: "Help & Support",
-        icon: "help-circle-outline",
-        type: "link",
-      },
-      {
-        id: "version",
-        label: "App Version",
-        icon: "information-circle-outline",
-        type: "value",
-        value: "1.0.0",
-      },
-      {
-        id: "logout",
-        label: "Log Out",
-        icon: "log-out-outline",
-        type: "action",
-        color: "#FF3B30",
-      }, // iOS destructive red
-    ],
-  },
-];
+import { SETTINGS_SECTIONS, SettingsItem } from "../constants/data";
+import { colors, fontSizes, iconSizes, spacing } from "../constants/theme";
 
 export default function SettingsScreen() {
   // Renders each individual row based on its "type"
@@ -133,7 +20,7 @@ export default function SettingsScreen() {
         // Slight highlight when tapping a link or action
         pressed &&
           (item.type === "link" || item.type === "action") && {
-            backgroundColor: "#E5E5EA",
+            backgroundColor: colors.settings.pressed,
           },
       ]}
     >
@@ -141,8 +28,8 @@ export default function SettingsScreen() {
         {/* If the item has a specific color (like logout), use it. Otherwise use iOS Blue */}
         <Ionicons
           name={item.icon as any}
-          size={22}
-          color={item.color || "#007AFF"}
+          size={iconSizes.s_medium}
+          color={item.color || colors.primary}
         />
       </View>
 
@@ -152,7 +39,11 @@ export default function SettingsScreen() {
 
       <View style={styles.rowRight}>
         {item.type === "link" && (
-          <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+          <Ionicons
+            name="chevron-forward"
+            size={iconSizes.small}
+            color={colors.settings.chevron}
+          />
         )}
         {item.type === "value" && (
           <Text style={styles.rowValue}>{item.value}</Text>
@@ -194,42 +85,42 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F2F2F7", // Standard iOS grouped settings background
+    backgroundColor: colors.settings.background, // Standard iOS grouped settings background
   },
   contentContainer: {
-    paddingBottom: 40,
+    paddingBottom: spacing.xlarge,
   },
   sectionHeader: {
-    fontSize: 13,
-    color: "#6D6D72",
-    marginTop: 32,
-    marginBottom: 8,
-    marginLeft: 16,
+    fontSize: fontSizes.caption,
+    color: colors.settings.headerText,
+    marginTop: spacing.large,
+    marginBottom: spacing.xs,
+    marginLeft: spacing.medium,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    backgroundColor: colors.settings.rowBackground,
+    paddingHorizontal: spacing.medium,
+    paddingVertical: spacing.s_medium,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#C6C6C8",
+    borderBottomColor: colors.settings.separator,
   },
   rowIconContainer: {
-    width: 30,
+    width: spacing.iconContainer,
     alignItems: "flex-start",
   },
   rowLabel: {
     flex: 1,
-    fontSize: 17, // Native iOS body font size
-    color: "#000",
+    fontSize: fontSizes.bodyLarge, // Native iOS body font size
+    color: colors.settings.labelText,
   },
   rowRight: {
     flexDirection: "row",
     alignItems: "center",
   },
   rowValue: {
-    fontSize: 17,
-    color: "#8E8E93",
+    fontSize: fontSizes.bodyLarge,
+    color: colors.settings.valueText,
   },
 });
