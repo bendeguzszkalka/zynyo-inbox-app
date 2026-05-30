@@ -105,7 +105,7 @@ export default function InboxScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <>
       <Stack.Screen
         options={{
           title: "Inbox",
@@ -132,13 +132,14 @@ export default function InboxScreen() {
       />
 
       <FlatList
+        style={styles.container}
         data={INBOX_DATA} // 1. Pass in your array
         keyExtractor={(item) => item.id} // 2. Tell it how to find the unique ID
         renderItem={renderMessage} // 3. Pass in your UI function
         contentContainerStyle={styles.scrollContent}
         contentInsetAdjustmentBehavior="automatic" // Recommended for iOS Large Titles inside FlatLists
       />
-    </View>
+    </>
   );
 }
 
