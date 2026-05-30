@@ -1,5 +1,10 @@
 import { Stack } from "expo-router";
 
 export default function RootLayout() {
-  return <Stack />;
+  return (
+    <Stack>
+      <Stack.Screen name="Index" options={{ title: "Inbox" }} />
+      <Stack.Screen name="Settings" options={{ title: "Settings" }} />
+    </Stack>
+  );
 }
