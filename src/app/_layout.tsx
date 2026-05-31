@@ -1,9 +1,14 @@
 import { DefaultTheme, DarkTheme, ThemeProvider } from "expo-router/react-navigation";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { useEffect } from "react";
 import { PreferencesProvider, usePreferences } from "../context/PreferencesContext";
+import { AuthProvider, useAuth } from "../context/AuthContext";
 
 function RootLayoutNav() {
   const { isDark, themeColors } = usePreferences();
+  const { userEmail } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
 
   const baseTheme = isDark ? DarkTheme : DefaultTheme;
 
@@ -21,11 +26,30 @@ function RootLayoutNav() {
     },
   };
 
+  useEffect(() => {
+    const inAuthGroup = segments[0] === "login";
+
+    if (!userEmail && !inAuthGroup) {
+      // Clear the stack before navigating to login
+      if (router.canDismiss()) {
+        router.dismissAll();
+      }
+      router.replace("/login");
+    } else if (userEmail && inAuthGroup) {
+      // Clear the stack before navigating to inbox
+      if (router.canDismiss()) {
+        router.dismissAll();
+      }
+      router.replace("/");
+    }
+  }, [userEmail, segments]);
+
   return (
     <ThemeProvider value={customTheme}>
       <Stack>
         <Stack.Screen name="index" options={{ title: "Inbox" }} />
         <Stack.Screen name="settings" options={{ title: "Settings" }} />
+        <Stack.Screen name="login" options={{ headerShown: false, presentation: "fullScreenModal" }} />
       </Stack>
     </ThemeProvider>
   );
@@ -33,8 +57,10 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <PreferencesProvider>
-      <RootLayoutNav />
-    </PreferencesProvider>
+    <AuthProvider>
+      <PreferencesProvider>
+        <RootLayoutNav />
+      </PreferencesProvider>
+    </AuthProvider>
   );
 }

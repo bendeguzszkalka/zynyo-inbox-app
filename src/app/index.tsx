@@ -40,6 +40,7 @@ import {
   getFriendlyBadgeProps,
   isStateActionable,
 } from "../services/zynyo";
+import { useAuth } from "../context/AuthContext";
 
 // Enable LayoutAnimation on Android
 
@@ -83,6 +84,8 @@ export default function InboxScreen() {
 
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
+  const { userEmail } = useAuth();
+
   // ── Data loading ──
 
   const loadInbox = useCallback(async (isRefresh = false) => {
@@ -91,7 +94,8 @@ export default function InboxScreen() {
     setError(null);
 
     try {
-      const data = await fetchIncomingSignRequests();
+      if (!userEmail) throw new Error("Please log in to view your inbox.");
+      const data = await fetchIncomingSignRequests(userEmail);
 
       setMessages(data);
     } catch (err: any) {

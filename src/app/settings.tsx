@@ -23,9 +23,11 @@ import {
   spacing
 } from "../constants/theme";
 import { usePreferences } from "../context/PreferencesContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function SettingsScreen() {
   const { preferences, updatePreference, themeColors } = usePreferences();
+  const { logout } = useAuth();
   const router = useRouter();
 
   const dynamicSections = SETTINGS_SECTIONS.map((section) => ({
@@ -77,14 +79,14 @@ export default function SettingsScreen() {
           },
           (buttonIndex) => {
             if (buttonIndex === 0) {
-              Alert.alert("Logged Out", "You have been logged out successfully.");
+              logout();
             }
           }
         );
       } else {
         Alert.alert("Log Out", "Are you sure you want to log out of Zynyo?", [
           { text: "Cancel", style: "cancel" },
-          { text: "Log Out", style: "destructive", onPress: () => Alert.alert("Logged Out", "You have been logged out successfully.") },
+          { text: "Log Out", style: "destructive", onPress: () => logout() },
         ]);
       }
     } else if (item.id === "help") {

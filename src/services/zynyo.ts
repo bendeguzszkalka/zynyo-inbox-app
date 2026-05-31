@@ -97,21 +97,21 @@ function formatDate(timestamp: number): string {
  * Fetches all incoming sign requests for the configured user email and sorts them.
  * Actionable requests are sorted to the top, and within each group, sorted by date descending.
  */
-export async function fetchIncomingSignRequests(): Promise<InboxItem[]> {
-  if (!API_URL || !API_KEY || !USER_EMAIL) {
+export async function fetchIncomingSignRequests(userEmail: string): Promise<InboxItem[]> {
+  if (!API_URL || !API_KEY || !userEmail) {
     console.error("Zynyo API environment variables are not fully configured:", {
       API_URL,
       hasApiKey: !!API_KEY,
-      USER_EMAIL,
+      userEmail,
     });
-    throw new Error("API configuration is incomplete. Please check your .env file.");
+    throw new Error("API configuration is incomplete or user is not logged in.");
   }
 
   const states = "NOT_VALIDATED,PARTIALLY_VALIDATED,VALIDATED,SIGNED,CANCELLED,REJECTED";
   const start = 0;
   const limit = 100;
 
-  const url = `${API_URL}/documents/${states}/${start}/${limit}?recipients=${encodeURIComponent(USER_EMAIL)}`;
+  const url = `${API_URL}/documents/${states}/${start}/${limit}?recipients=${encodeURIComponent(userEmail)}`;
 
   const response = await fetch(url, {
     method: "GET",
@@ -139,7 +139,7 @@ export async function fetchIncomingSignRequests(): Promise<InboxItem[]> {
   const mapped: InboxItem[] = data.map((doc: any) => {
     const sender = doc.signRequest?.submitterName || doc.signRequest?.submitter || "Unknown Submitter";
     const timestamp = doc.stateChangedDate || doc.signRequest?.createdAt || Date.now();
-    const signatory = doc.signatories?.find((s: any) => s.email?.toLowerCase() === USER_EMAIL?.toLowerCase());
+    const signatory = doc.signatories?.find((s: any) => s.email?.toLowerCase() === userEmail.toLowerCase());
     
     const userHasSigned = signatory?.state === "VALIDATED" || doc.documentState === "SIGNED" || doc.documentState === "VALIDATED";
     const userRole = signatory?.signatoryRole || "SIGN";
