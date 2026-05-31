@@ -1,14 +1,18 @@
-import { Stack, useLocalSearchParams } from "expo-router";
-import { Platform, PlatformColor, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Link, Stack, useLocalSearchParams } from "expo-router";
+import { Platform, PlatformColor, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { InboxItem } from "../constants/data";
 import {
   borderRadii,
   fontSizes,
   fontWeights,
+  iconSizes,
   letterSpacing,
   spacing,
 } from "../constants/theme";
 import { usePreferences } from "../context/PreferencesContext";
+
+import { getFriendlyBadgeProps } from "../services/zynyo";
 
 export default function MessageScreen() {
   const { themeColors } = usePreferences();
@@ -39,13 +43,15 @@ export default function MessageScreen() {
     ? item.description.replace(/<[^>]*>/g, "").trim()
     : "";
 
+  const badge = getFriendlyBadgeProps(item.state, themeColors.badge);
+
   return (
     <>
       <Stack.Screen
         options={{
-          title: "Message Details",
+          title: "Message",
           headerLargeTitle: false,
-          headerBackTitleVisible: false,
+          headerBackTitle: " ",
         }}
       />
       <ScrollView
@@ -59,12 +65,31 @@ export default function MessageScreen() {
         </View>
 
         <View style={[styles.card, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-          <View style={styles.cardHeader}>
-            <Text style={[styles.cardTitle, { color: sysLabel }]}>Status</Text>
-            <View style={[styles.badge, { backgroundColor: themeColors.primary + "33" }]}>
-              <Text style={[styles.badgeText, { color: themeColors.primary }]}>{item.state.replace(/_/g, " ")}</Text>
-            </View>
-          </View>
+          <Link href={{ pathname: "/status", params: { documentId: item.id } }} asChild>
+            <Pressable>
+              {({ pressed }) => (
+                <View
+                  style={[
+                    styles.cardHeader,
+                    pressed && { backgroundColor: Platform.OS === "ios" ? (PlatformColor("systemFill") as any) : themeColors.settings.pressed }
+                  ]}
+                >
+                  <Text style={[styles.cardTitle, { color: sysLabel }]}>Status</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <View style={[styles.badge, { backgroundColor: badge.background }]}>
+                      <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={iconSizes.small || 16}
+                      color={Platform.OS === "ios" ? (PlatformColor("tertiaryLabel") as any) : themeColors.settings.chevron}
+                      style={{ marginLeft: spacing.small }}
+                    />
+                  </View>
+                </View>
+              )}
+            </Pressable>
+          </Link>
           <View style={[styles.separator, { backgroundColor: themeColors.border }]} />
           <View style={styles.cardContent}>
             <Text style={[styles.bodyText, { color: sysLabel }]}>

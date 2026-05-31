@@ -34,7 +34,7 @@ import {
   springPressOut,
 } from "../constants/theme";
 import { usePreferences } from "../context/PreferencesContext";
-import { fetchIncomingSignRequests } from "../services/zynyo";
+import { fetchIncomingSignRequests, getFriendlyBadgeProps } from "../services/zynyo";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -75,37 +75,6 @@ const FILTER_OPTIONS = [
 
 /** Gap between the filter and search pills — must match LiquidGlassContainerView spacing prop */
 const PILL_GAP = 12;
-
-// ─── Badge helper ─────────────────────────────────────────────────────────────
-
-function getStateBadgeProps(
-  state: string,
-  badgeColors: {
-    toSign: { background: string; text: string };
-    signed: { background: string; text: string };
-    cancelled: { background: string; text: string };
-    failed: { background: string; text: string };
-    default: { background: string; text: string };
-  }
-) {
-  const s = state.toUpperCase();
-  if (s === "NOT_VALIDATED" || s === "PARTIALLY_VALIDATED") {
-    return { label: "To Sign", ...badgeColors.toSign };
-  }
-  if (s === "SIGNED" || s === "VALIDATED") {
-    return { label: "Signed", ...badgeColors.signed };
-  }
-  if (s === "CANCELLED") {
-    return { label: "Cancelled", ...badgeColors.cancelled };
-  }
-  if (s === "REJECTED") {
-    return { label: "Rejected", ...badgeColors.cancelled };
-  }
-  if (s === "AUTHENTICATION_FAILED" || s === "ERROR") {
-    return { label: "Failed", ...badgeColors.failed };
-  }
-  return { label: state, ...badgeColors.default };
-}
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -221,7 +190,7 @@ export default function InboxScreen() {
   // ─── Render helpers ────────────────────────────────────────────────────────
 
   const renderMessage = ({ item }: { item: InboxItem }) => {
-    const badge = getStateBadgeProps(item.state, themeColors.badge);
+    const badge = getFriendlyBadgeProps(item.state, themeColors.badge);
     const cleanDescription = item.description
       ? item.description.replace(/<[^>]*>/g, "").trim()
       : "";
@@ -307,44 +276,6 @@ export default function InboxScreen() {
 
     const isFiltering = searchQuery.length > 0 || statusFilter !== null;
 
-    if (filteredMessages.length === 0) {
-      return (
-        <FlatList
-          style={[styles.container, { backgroundColor: themeColors.background }]}
-          data={[]}
-          renderItem={null}
-          ListEmptyComponent={
-            <View style={styles.centerContainer}>
-              <Ionicons
-                name={isFiltering ? "search-outline" : "mail-open-outline"}
-                size={64}
-                color={themeColors.settings.valueText}
-                style={{ marginBottom: spacing.medium }}
-              />
-              <Text style={[styles.emptyText, { color: themeColors.settings.valueText }]}>
-                {isFiltering
-                  ? "No requests found matching search or filter criteria"
-                  : "Your Zynyo inbox is clean!"}
-              </Text>
-              {isFiltering && (
-                <Pressable
-                  style={[
-                    styles.retryButton,
-                    { backgroundColor: themeColors.primary, marginTop: spacing.medium },
-                  ]}
-                  onPress={() => { setSearchQuery(""); setStatusFilter(null); }}
-                >
-                  <Text style={styles.retryButtonText}>Clear Search & Filters</Text>
-                </Pressable>
-              )}
-            </View>
-          }
-          refreshControl={renderRefreshControl()}
-          contentContainerStyle={styles.scrollContent}
-        />
-      );
-    }
-
     return (
       <FlatList
         style={[styles.container, { backgroundColor: themeColors.background }]}
@@ -354,6 +285,33 @@ export default function InboxScreen() {
         refreshControl={renderRefreshControl()}
         contentContainerStyle={styles.scrollContent}
         contentInsetAdjustmentBehavior="automatic"
+        alwaysBounceVertical={true}
+        ListEmptyComponent={
+          <View style={styles.centerContainer}>
+            <Ionicons
+              name={isFiltering ? "search-outline" : "mail-open-outline"}
+              size={64}
+              color={themeColors.settings.valueText}
+              style={{ marginBottom: spacing.medium }}
+            />
+            <Text style={[styles.emptyText, { color: themeColors.settings.valueText }]}>
+              {isFiltering
+                ? "No requests found matching search or filter criteria"
+                : "Your Zynyo inbox is clean!"}
+            </Text>
+            {isFiltering && (
+              <Pressable
+                style={[
+                  styles.retryButton,
+                  { backgroundColor: themeColors.primary, marginTop: spacing.medium },
+                ]}
+                onPress={() => { setSearchQuery(""); setStatusFilter(null); }}
+              >
+                <Text style={styles.retryButtonText}>Clear Search & Filters</Text>
+              </Pressable>
+            )}
+          </View>
+        }
       />
     );
   };
@@ -591,7 +549,8 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 10, fontWeight: "bold", textTransform: "uppercase" },
 
   // Empty / error
-  centerContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: spacing.large },
+  scrollContent: { paddingBottom: 120 },
+  centerContainer: { justifyContent: "center", alignItems: "center", padding: spacing.large, marginTop: 100 },
   errorText: { fontSize: fontSizes.body, textAlign: "center", marginBottom: spacing.medium, lineHeight: 20 },
   retryButton: { paddingHorizontal: spacing.medium, paddingVertical: spacing.xs, borderRadius: 8 },
   retryButtonText: { fontSize: fontSizes.body, fontWeight: "bold", color: "#FFFFFF" },

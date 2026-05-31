@@ -13,6 +13,56 @@ export function isStateActionable(state: string): boolean {
 }
 
 /**
+ * Returns a friendly label and badge colors for any API state.
+ */
+export function getFriendlyBadgeProps(state: string, badgeColors: any) {
+  const s = (state || "UNKNOWN").toUpperCase();
+
+  // Completed
+  if (["SIGNED", "VALIDATED", "DOWNLOADED", "GROUP_COMPLETED"].includes(s)) {
+    return { label: "Signed", ...badgeColors.signed };
+  }
+  // Viewing / Opened
+  if (["UUID_ACCESSED", "VIEWING", "VIEWED", "DOWNLOAD_ACCESSED"].includes(s)) {
+    return { label: "Opened", ...badgeColors.toSign };
+  }
+  // Invited
+  if (["EMAIL_SENT"].includes(s)) {
+    return { label: "Invited", ...badgeColors.toSign };
+  }
+  // Pending
+  if (["NOT_VALIDATED", "PARTIALLY_VALIDATED", "NOT_INVITED", "AWAIT_EMAIL"].includes(s)) {
+    return { label: "Pending", ...badgeColors.toSign };
+  }
+  // Failed
+  if (["AUTHENTICATION_FAILED", "ERROR", "E_EMAIL"].includes(s)) {
+    return { label: "Failed", ...badgeColors.failed };
+  }
+  // Rejected / Cancelled
+  if (s === "REJECTED") {
+    return { label: "Rejected", ...badgeColors.cancelled };
+  }
+  if (s === "CANCELLED") {
+    return { label: "Cancelled", ...badgeColors.cancelled };
+  }
+  // Misc
+  if (["REPLACED", "DELEGATED"].includes(s)) {
+    return { label: "Replaced", ...badgeColors.default };
+  }
+  if (["CC", "REPLACEMENT_CANDIDATE", "AUTHORIZATION_CANDIDATE"].includes(s)) {
+    return { label: "Copy Only", ...badgeColors.default };
+  }
+
+  // Fallback for any unknown state: Replace underscores and capitalize words
+  const friendlyLabel = (state || "Unknown")
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+  return { label: friendlyLabel, ...badgeColors.default };
+}
+
+/**
  * Formats a timestamp into a clean, premium-looking human-readable date.
  */
 function formatDate(timestamp: number): string {
@@ -99,3 +149,33 @@ export async function fetchIncomingSignRequests(): Promise<InboxItem[]> {
     return b.date - a.date;
   });
 }
+
+/**
+ * Fetches the full document details, including all signatories.
+ */
+export async function fetchDocumentDetails(uuid: string): Promise<any> {
+  if (!API_URL || !API_KEY) {
+    throw new Error("API configuration is incomplete.");
+  }
+
+  const url = `${API_URL}/document/${uuid}`;
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "apikey": API_KEY,
+      "Accept": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    let errorMsg = `HTTP Error ${response.status}`;
+    try {
+      const text = await response.text();
+      errorMsg += `: ${text}`;
+    } catch {}
+    throw new Error(errorMsg);
+  }
+
+  return response.json();
+}
+
