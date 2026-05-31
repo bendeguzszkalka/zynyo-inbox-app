@@ -227,33 +227,43 @@ export default function InboxScreen() {
       : "";
 
     return (
-      <View
-        style={[
-          styles.messageRow,
-          { paddingVertical: verticalPadding, borderBottomColor: themeColors.border },
-        ]}
-      >
-        <View style={styles.headerRow}>
-          <Text numberOfLines={1} style={[styles.senderText, { color: themeColors.settings.labelText }]}>
-            {item.sender}
-          </Text>
-          <View style={[styles.badge, { backgroundColor: badge.background }]}>
-            <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
-          </View>
-        </View>
+      <Link href={{ pathname: "/message", params: { data: JSON.stringify(item) } }} asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <View
+              style={[
+                styles.messageRow,
+                { paddingVertical: verticalPadding, borderBottomColor: themeColors.border },
+                pressed && { backgroundColor: themeColors.settings.pressed || "rgba(0,0,0,0.05)" }
+              ]}
+            >
+              <View style={{ marginTop: spacing.small, marginBottom: 0, marginHorizontal: spacing.xs }}>
+                <View style={styles.headerRow}>
+                  <Text numberOfLines={1} style={[styles.senderText, { color: themeColors.settings.labelText, flex: 1, marginRight: spacing.small }]}>
+                    {item.sender}
+                  </Text>
+                  <View style={[styles.badge, { backgroundColor: badge.background }]}>
+                    <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
+                  </View>
+                </View>
 
-        <Text numberOfLines={1} style={[styles.messageText, { color: themeColors.text }]}>
-          {item.message}
-        </Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.small }}>
+                  <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.messageText, { color: themeColors.text, flex: 1, marginRight: spacing.small, marginBottom: 0 }]}>
+                    {item.message}
+                  </Text>
+                  <Text style={[styles.dateText, { color: themeColors.settings.valueText }]}>
+                    {item.formattedDate}
+                  </Text>
+                </View>
 
-        <Text numberOfLines={2} style={[styles.descriptionText, { color: themeColors.settings.valueText, height: 36 }]}>
-          {cleanDescription}
-        </Text>
-
-        <Text style={[styles.dateText, { color: themeColors.settings.valueText }]}>
-          {item.formattedDate}
-        </Text>
-      </View>
+                <Text numberOfLines={2} ellipsizeMode="tail" style={[styles.descriptionText, { color: themeColors.settings.valueText, height: 36 }]}>
+                  {cleanDescription}
+                </Text>
+              </View>
+            </View>
+          )}
+        </Pressable>
+      </Link>
     );
   };
 
