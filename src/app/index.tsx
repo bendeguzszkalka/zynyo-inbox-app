@@ -5,18 +5,17 @@ import { Link, Stack } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   FlatList,
-  Modal,
   Platform,
-  PlatformColor,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   UIManager,
   View,
+  LayoutAnimation,
 } from "react-native";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,10 +23,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { InboxItem } from "../constants/data";
 
 import {
+  borderRadii,
+  borderStyles,
   cardShadow,
   fontSizes,
   fontWeights,
   iconSizes,
+  pillShadow,
   spacing,
 } from "../constants/theme";
 
@@ -50,15 +52,15 @@ if (
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const FILTER_OPTIONS = [
-  { label: "All Requests", value: null },
+  { label: "All Requests", value: null, icon: "albums" as const },
 
-  { label: "To Sign", value: "TO_SIGN" },
+  { label: "To Sign", value: "TO_SIGN", icon: "pencil" as const },
 
-  { label: "Signed", value: "SIGNED" },
+  { label: "Signed", value: "SIGNED", icon: "checkmark-circle" as const },
 
-  { label: "Cancelled", value: "CANCELLED" },
+  { label: "Cancelled", value: "CANCELLED", icon: "close-circle" as const },
 
-  { label: "Rejected", value: "REJECTED" },
+  { label: "Rejected", value: "REJECTED", icon: "ban" as const },
 ];
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -79,8 +81,6 @@ export default function InboxScreen() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-
-  const [showAndroidFilterModal, setShowAndroidFilterModal] = useState(false);
 
   // ── Data loading ──
 
@@ -118,28 +118,6 @@ export default function InboxScreen() {
 
   const onRefresh = useCallback(() => loadInbox(true), [loadInbox]);
 
-  // ── Filter action sheet ──
-
-  const handleFilterPress = () => {
-    if (Platform.OS === "ios") {
-      const options = [...FILTER_OPTIONS.map((o) => o.label), "Cancel"];
-
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options,
-          cancelButtonIndex: options.length - 1,
-          title: "Filter Sign Requests",
-        },
-
-        (i) => {
-          if (i < options.length - 1) setStatusFilter(FILTER_OPTIONS[i].value);
-        },
-      );
-    } else {
-      setShowAndroidFilterModal(true);
-    }
-  };
-
   // ── Derived state ──
 
   const filteredMessages = messages.filter((item) => {
@@ -167,22 +145,6 @@ export default function InboxScreen() {
 
   const verticalPadding =
     preferences.density === "Compact" ? spacing.xs : spacing.medium;
-
-  const activeOption = FILTER_OPTIONS.find((o) => o.value === statusFilter);
-
-  const filterLabel = activeOption?.label ?? "All Requests";
-
-  // ── OS-adaptive label colours (auto-adapt through glass on iOS) ──
-
-  const labelColor =
-    Platform.OS === "ios"
-      ? (PlatformColor("label") as any)
-      : themeColors.settings.labelText;
-
-  const secondaryColor =
-    Platform.OS === "ios"
-      ? (PlatformColor("secondaryLabel") as any)
-      : themeColors.settings.valueText;
 
   // ─── Render helpers ────────────────────────────────────────────────────────
 
@@ -310,6 +272,54 @@ export default function InboxScreen() {
     />
   );
 
+  const renderFilterChips = () => (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.filterChipsContainer}
+      contentContainerStyle={styles.filterChipsContent}
+    >
+      {FILTER_OPTIONS.map((option) => {
+        const isSelected = statusFilter === option.value;
+
+        return (
+          <Pressable
+            key={option.value ?? "all"}
+            style={[
+              styles.filterChip,
+              {
+                backgroundColor: isSelected
+                  ? themeColors.primary
+                  : themeColors.settings.background,
+              },
+              isSelected && pillShadow,
+            ]}
+            onPress={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setStatusFilter(option.value);
+            }}
+          >
+            <Ionicons
+              name={option.icon}
+              size={16}
+              color={isSelected ? "#FFFFFF" : themeColors.settings.valueText}
+            />
+            <Text
+              style={[
+                styles.filterChipText,
+                {
+                  color: isSelected ? "#FFFFFF" : themeColors.text,
+                },
+              ]}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+
   const renderContent = () => {
     if (loading) {
       return (
@@ -368,6 +378,7 @@ export default function InboxScreen() {
         contentContainerStyle={styles.scrollContent}
         contentInsetAdjustmentBehavior="automatic"
         alwaysBounceVertical={true}
+        ListHeaderComponent={renderFilterChips}
         ListEmptyComponent={
           <View style={styles.centerContainer}>
             <Ionicons
@@ -414,81 +425,6 @@ export default function InboxScreen() {
     );
   };
 
-  const renderAndroidFilterModal = () => (
-    <Modal
-      visible={showAndroidFilterModal}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setShowAndroidFilterModal(false)}
-    >
-      <Pressable
-        style={styles.modalOverlay}
-        onPress={() => setShowAndroidFilterModal(false)}
-      >
-        <View
-          style={[
-            styles.modalContent,
-
-            {
-              backgroundColor: themeColors.card,
-              borderColor: themeColors.border,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.modalTitle,
-              { color: themeColors.settings.labelText },
-            ]}
-          >
-            Filter Sign Requests
-          </Text>
-
-          {FILTER_OPTIONS.map((option) => {
-            const isSelected = statusFilter === option.value;
-
-            return (
-              <Pressable
-                key={option.value ?? "all"}
-                style={styles.modalOption}
-                onPress={() => {
-                  setStatusFilter(option.value);
-
-                  setShowAndroidFilterModal(false);
-                }}
-              >
-                <Ionicons
-                  name={isSelected ? "radio-button-on" : "radio-button-off"}
-                  size={20}
-                  color={
-                    isSelected
-                      ? themeColors.primary
-                      : themeColors.settings.valueText
-                  }
-                  style={{ marginRight: spacing.medium }}
-                />
-
-                <Text
-                  style={[
-                    styles.modalOptionText,
-
-                    {
-                      color: themeColors.settings.labelText,
-
-                      fontWeight: isSelected ? "bold" : "normal",
-                    },
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </Pressable>
-    </Modal>
-  );
-
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -514,20 +450,8 @@ export default function InboxScreen() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: spacing.medium,
               }}
             >
-              <Pressable hitSlop={15} onPress={handleFilterPress}>
-                {({ pressed }) => (
-                  <Ionicons
-                    name={statusFilter !== null ? "funnel" : "funnel-outline"}
-                    size={iconSizes.medium}
-                    color={themeColors.primary}
-                    style={{ opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-
               <Link href="/settings" asChild>
                 <Pressable hitSlop={15}>
                   {({ pressed }) => (
@@ -550,8 +474,6 @@ export default function InboxScreen() {
       {/* 1. ROOT LEVEL: The FlatList goes here so it connects to the native header */}
 
       {renderContent()}
-
-      {Platform.OS === "android" && renderAndroidFilterModal()}
     </>
   );
 }
@@ -619,8 +541,9 @@ const styles = StyleSheet.create({
 
   retryButton: {
     paddingHorizontal: spacing.medium,
-    paddingVertical: spacing.xs,
-    borderRadius: 8,
+    paddingVertical: spacing.s_medium, // Slightly taller padding to match the larger radius
+    borderRadius: 24,
+    ...borderStyles.squircle,
   },
 
   retryButtonText: {
@@ -631,41 +554,29 @@ const styles = StyleSheet.create({
 
   emptyText: { fontSize: fontSizes.heading, textAlign: "center" },
 
-  // Android Filter Modal
+  // Filter Chips
 
-  modalOverlay: {
-    flex: 1,
-
-    backgroundColor: "rgba(0,0,0,0.4)",
-
-    justifyContent: "center",
-
-    alignItems: "center",
+  filterChipsContainer: {
+    paddingVertical: spacing.medium,
   },
 
-  modalContent: {
-    width: "80%",
-
-    borderRadius: 10,
-
-    padding: spacing.medium,
-
-    borderWidth: 1,
-
-    ...cardShadow,
+  filterChipsContent: {
+    paddingHorizontal: spacing.medium,
+    gap: spacing.small,
   },
 
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: spacing.medium,
-  },
-
-  modalOption: {
+  filterChip: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: spacing.s_medium,
+    gap: spacing.small,
+    paddingHorizontal: spacing.medium,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadii.pill,
+    ...borderStyles.squircle,
   },
 
-  modalOptionText: { fontSize: 16 },
+  filterChipText: {
+    fontSize: fontSizes.body,
+    fontWeight: fontWeights.medium,
+  },
 });
