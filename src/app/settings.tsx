@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
 import {
+  ActionSheetIOS,
   Alert,
+  Linking,
   Platform,
   PlatformColor,
   Pressable,
@@ -30,26 +32,60 @@ export default function SettingsScreen() {
     data: section.data.map((item) => {
       if (item.id === "push") return { ...item, value: preferences.push };
       if (item.id === "badges") return { ...item, value: preferences.badges };
-      if (item.id === "theme") return { ...item, value: preferences.theme };
       if (item.id === "density") return { ...item, value: preferences.density };
       return item;
     }),
   }));
 
   const handlePress = (item: SettingsItem) => {
-    if (item.id === "theme") {
-      Alert.alert("Select Theme", "Choose your preferred app theme.", [
-        { text: "Light", onPress: () => updatePreference("theme", "Light") },
-        { text: "Dark", onPress: () => updatePreference("theme", "Dark") },
-        { text: "System Default", onPress: () => updatePreference("theme", "System") },
-        { text: "Cancel", style: "cancel" },
-      ]);
-    } else if (item.id === "density") {
-      Alert.alert("Inbox Density", "", [
-        { text: "Compact", onPress: () => updatePreference("density", "Compact") },
-        { text: "Comfortable", onPress: () => updatePreference("density", "Comfortable") },
-        { text: "Cancel", style: "cancel" },
-      ]);
+    if (item.id === "density") {
+      if (Platform.OS === "ios") {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: ["Compact", "Comfortable", "Cancel"],
+            cancelButtonIndex: 2,
+            title: "Inbox Density",
+          },
+          (buttonIndex) => {
+            if (buttonIndex === 0) updatePreference("density", "Compact");
+            if (buttonIndex === 1) updatePreference("density", "Comfortable");
+          }
+        );
+      } else {
+        Alert.alert("Inbox Density", "", [
+          { text: "Compact", onPress: () => updatePreference("density", "Compact") },
+          { text: "Comfortable", onPress: () => updatePreference("density", "Comfortable") },
+          { text: "Cancel", style: "cancel" },
+        ]);
+      }
+    } else if (item.id === "logout") {
+      if (Platform.OS === "ios") {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: ["Log Out", "Cancel"],
+            destructiveButtonIndex: 0,
+            cancelButtonIndex: 1,
+            title: "Log Out",
+            message: "Are you sure you want to log out of Zynyo?",
+          },
+          (buttonIndex) => {
+            if (buttonIndex === 0) {
+              Alert.alert("Logged Out", "You have been logged out successfully.");
+            }
+          }
+        );
+      } else {
+        Alert.alert("Log Out", "Are you sure you want to log out of Zynyo?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Log Out", style: "destructive", onPress: () => Alert.alert("Logged Out", "You have been logged out successfully.") },
+        ]);
+      }
+    } else if (item.id === "help") {
+      Linking.openURL("https://zynyo.com");
+    } else if (item.id === "version") {
+      Alert.alert("Zynyo Inbox", "Version 1.0.0 (Build 42)\nYour app is up to date.");
+    } else if (item.id === "swipe" || item.id === "dnd") {
+      Alert.alert("Coming Soon", "This feature is currently under development.");
     }
   };
 

@@ -27,29 +27,7 @@ export type SettingsSection = {
 };
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
-  {
-    title: "Account",
-    data: [
-      {
-        id: "profile",
-        label: "Profile & Name",
-        icon: "person-outline",
-        type: "link",
-      },
-      {
-        id: "aliases",
-        label: "Email Aliases",
-        icon: "mail-outline",
-        type: "link",
-      },
-      {
-        id: "signature",
-        label: "Signature",
-        icon: "create-outline",
-        type: "link",
-      },
-    ],
-  },
+
   {
     title: "Notifications",
     data: [
@@ -78,13 +56,6 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   {
     title: "Appearance & Behavior",
     data: [
-      {
-        id: "theme",
-        label: "Theme",
-        icon: "color-palette-outline",
-        type: "value",
-        value: "System",
-      },
       {
         id: "swipe",
         label: "Swipe Actions",
