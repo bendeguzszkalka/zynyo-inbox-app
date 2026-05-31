@@ -528,7 +528,7 @@ export default function InboxScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: spacing.medium, paddingBottom: 88 },
+  scrollContent: { paddingHorizontal: spacing.medium, paddingBottom: 120 },
 
   // Message row
   messageRow: {
@@ -549,7 +549,6 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 10, fontWeight: "bold", textTransform: "uppercase" },
 
   // Empty / error
-  scrollContent: { paddingBottom: 120 },
   centerContainer: { justifyContent: "center", alignItems: "center", padding: spacing.large, marginTop: 100 },
   errorText: { fontSize: fontSizes.body, textAlign: "center", marginBottom: spacing.medium, lineHeight: 20 },
   retryButton: { paddingHorizontal: spacing.medium, paddingVertical: spacing.xs, borderRadius: 8 },

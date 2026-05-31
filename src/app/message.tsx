@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
 import { Link, Stack, useLocalSearchParams } from "expo-router";
 import { Platform, PlatformColor, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { InboxItem } from "../constants/data";
@@ -97,6 +98,21 @@ export default function MessageScreen() {
             </Text>
           </View>
         </View>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.openBrowserButton,
+            { backgroundColor: themeColors.primary },
+            pressed && { opacity: 0.8 }
+          ]}
+          onPress={() => {
+            const baseUrl = (process.env.EXPO_PUBLIC_API_URL || "https://sandbox.zynyo.com").replace("/api/rest/v4", "");
+            WebBrowser.openBrowserAsync(`${baseUrl}/document/${item.id}`);
+          }}
+        >
+          <Ionicons name="globe-outline" size={iconSizes.medium || 20} color="#FFFFFF" style={{ marginRight: spacing.small }} />
+          <Text style={styles.openBrowserButtonText}>Open in Browser</Text>
+        </Pressable>
       </ScrollView>
     </>
   );
@@ -162,5 +178,18 @@ const styles = StyleSheet.create({
   bodyText: {
     fontSize: fontSizes.bodyLarge,
     lineHeight: 24,
+  },
+  openBrowserButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: spacing.large,
+    paddingVertical: spacing.medium,
+    borderRadius: borderRadii.button,
+  },
+  openBrowserButtonText: {
+    color: "#FFFFFF",
+    fontSize: fontSizes.bodyLarge,
+    fontWeight: fontWeights.bold,
   },
 });

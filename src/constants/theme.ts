@@ -88,6 +88,7 @@ export const borderRadii = {
   card: 16,             // Modern standard card
   settingsCard: 24,     // The new iOS 26 massive insetGrouped radius
   pill: 9999,           // Perfect pill regardless of height
+  button: 24,           // Standard button radius
 } as const;
 
 /** * Apple's proprietary mathematical curve. 
