@@ -1,22 +1,30 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
 import {
-    Alert,
-    Pressable,
-    SectionList,
-    StyleSheet,
-    Switch,
-    Text,
-    View,
+  Alert,
+  Platform,
+  PlatformColor,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
 } from "react-native";
 import { SETTINGS_SECTIONS, SettingsItem } from "../constants/data";
-import { fontSizes, iconSizes, spacing } from "../constants/theme";
+import {
+  borderRadii,
+  fontSizes,
+  fontWeights,
+  iconSizes,
+  letterSpacing,
+  spacing
+} from "../constants/theme";
 import { usePreferences } from "../context/PreferencesContext";
 
 export default function SettingsScreen() {
   const { preferences, updatePreference, themeColors } = usePreferences();
 
-  // 2. Map over your static imported data to inject the live state
   const dynamicSections = SETTINGS_SECTIONS.map((section) => ({
     ...section,
     data: section.data.map((item) => {
@@ -28,161 +36,186 @@ export default function SettingsScreen() {
     }),
   }));
 
-  // 3. Handle native alert popups for "value" types
   const handlePress = (item: SettingsItem) => {
     if (item.id === "theme") {
       Alert.alert("Select Theme", "Choose your preferred app theme.", [
-        {
-          text: "Light",
-          onPress: () => updatePreference("theme", "Light"),
-        },
+        { text: "Light", onPress: () => updatePreference("theme", "Light") },
         { text: "Dark", onPress: () => updatePreference("theme", "Dark") },
-        {
-          text: "System Default",
-          onPress: () => updatePreference("theme", "System"),
-        },
+        { text: "System Default", onPress: () => updatePreference("theme", "System") },
         { text: "Cancel", style: "cancel" },
       ]);
     } else if (item.id === "density") {
       Alert.alert("Inbox Density", "", [
-        {
-          text: "Compact",
-          onPress: () => updatePreference("density", "Compact"),
-        },
-        {
-          text: "Comfortable",
-          onPress: () => updatePreference("density", "Comfortable"),
-        },
+        { text: "Compact", onPress: () => updatePreference("density", "Compact") },
+        { text: "Comfortable", onPress: () => updatePreference("density", "Comfortable") },
         { text: "Cancel", style: "cancel" },
       ]);
     }
   };
 
-  const renderItem = ({ item }: { item: SettingsItem }) => {
-    // Extract the inner UI so we can conditionally wrap it in a Link or Pressable
-    const InnerRow = (
-      <View style={[styles.row, { backgroundColor: themeColors.settings.rowBackground, borderBottomColor: themeColors.settings.separator }]}>
-        <View style={styles.rowIconContainer}>
-          <Ionicons
-            name={item.icon as any}
-            size={iconSizes.s_medium}
-            color={item.color || themeColors.primary}
-          />
-        </View>
+  // ── 100% Native OS Semantic Colors ──
+  const sysBackground = Platform.OS === "ios" ? PlatformColor("systemGroupedBackground") : themeColors.settings.background;
+  const sysCardBackground = Platform.OS === "ios" ? PlatformColor("secondarySystemGroupedBackground") : themeColors.settings.rowBackground;
+  const sysSeparator = Platform.OS === "ios" ? PlatformColor("separator") : themeColors.settings.separator;
+  const sysLabel = Platform.OS === "ios" ? PlatformColor("label") : themeColors.settings.labelText;
+  const sysSecondaryLabel = Platform.OS === "ios" ? PlatformColor("secondaryLabel") : themeColors.settings.valueText;
+  const sysTertiaryLabel = Platform.OS === "ios" ? PlatformColor("tertiaryLabel") : themeColors.settings.chevron;
 
-        <Text style={[styles.rowLabel, { color: themeColors.settings.labelText }, item.color && { color: item.color }]}>
+  const renderRow = (item: SettingsItem) => {
+    const isToggle = item.type === "toggle";
+    const isLink = item.type === "link" && (item as any).href;
+
+    const innerRow = (
+      <View style={styles.row}>
+        <Text
+          style={[
+            styles.rowLabel,
+            { color: sysLabel },
+            item.color ? { color: item.color } : undefined,
+          ]}
+        >
           {item.label}
         </Text>
 
         <View style={styles.rowRight}>
+          {item.type === "value" && (
+            <Text style={[styles.rowValue, { color: sysSecondaryLabel }]}>
+              {item.value as string}
+            </Text>
+          )}
           {item.type === "link" && (
             <Ionicons
               name="chevron-forward"
               size={iconSizes.small}
-              color={themeColors.settings.chevron}
+              color={sysTertiaryLabel}
             />
           )}
-          {item.type === "value" && (
-            <Text style={[styles.rowValue, { color: themeColors.settings.valueText }]}>{item.value}</Text>
-          )}
-          {item.type === "toggle" && (
+          {isToggle && (
             <Switch
               value={item.value as boolean}
-              onValueChange={(newValue) =>
-                updatePreference(item.id as any, newValue)
-              }
+              onValueChange={(v) => updatePreference(item.id as any, v)}
+              trackColor={Platform.OS === "ios" ? { true: themeColors.success } : undefined}
             />
           )}
         </View>
       </View>
     );
 
-    // If it's a link (and you added an href to your data.ts), use Expo Router Link
-    if (item.type === "link" && (item as any).href) {
+    const pressableStyle = ({ pressed }: { pressed: boolean }) =>
+      pressed && !isToggle
+        ? { backgroundColor: Platform.OS === "ios" ? PlatformColor("systemFill") : themeColors.settings.pressed }
+        : undefined;
+
+    if (isLink) {
       return (
-        <Link href={(item as any).href} asChild>
-          <Pressable
-            style={({ pressed }) =>
-              pressed && { backgroundColor: themeColors.settings.pressed }
-            }
-          >
-            {InnerRow}
-          </Pressable>
+        <Link href={(item as any).href} asChild key={item.id}>
+          <Pressable style={pressableStyle}>{innerRow}</Pressable>
         </Link>
       );
     }
 
-    // Otherwise, it's an action, toggle, or value item
     return (
       <Pressable
-        onPress={() => handlePress(item)}
-        disabled={item.type === "toggle"} // Let the Switch handle the tap
-        style={({ pressed }) =>
-          pressed &&
-          item.type !== "toggle" && { backgroundColor: themeColors.settings.pressed }
-        }
+        key={item.id}
+        onPress={isToggle ? undefined : () => handlePress(item)}
+        disabled={isToggle}
+        style={pressableStyle}
       >
-        {InnerRow}
+        {innerRow}
       </Pressable>
     );
   };
 
-  const renderSectionHeader = ({ section }: { section: { title: string } }) => (
-    <Text style={[styles.sectionHeader, { color: themeColors.settings.headerText }]}>
-      {section.title.toUpperCase()}
-    </Text>
-  );
-
   return (
     <>
-      <Stack.Screen options={{ title: "Settings", headerLargeTitle: true }} />
-      <SectionList
-        style={[styles.container, { backgroundColor: themeColors.settings.background }]}
-        sections={dynamicSections} // <-- Feed it the mapped array
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        renderSectionHeader={renderSectionHeader}
+      <Stack.Screen
+        options={{
+          title: "Settings",
+          headerLargeTitle: true,
+          headerLeft: undefined,
+          headerRight: () => null,
+        }}
+      />
+
+      <ScrollView
+        style={[styles.container, { backgroundColor: sysBackground }]}
         contentContainerStyle={styles.contentContainer}
         contentInsetAdjustmentBehavior="automatic"
-        stickySectionHeadersEnabled={false}
-      />
+      >
+        {dynamicSections.map((section) => (
+          <View key={section.title} style={styles.sectionContainer}>
+            <Text style={[styles.sectionHeader, { color: sysSecondaryLabel }]}>
+              {section.title}
+            </Text>
+
+            <View
+              style={[
+                styles.sectionCard,
+                { backgroundColor: sysCardBackground }
+              ]}
+            >
+              {section.data.map((item, index) => (
+                <View key={item.id}>
+                  {renderRow(item)}
+                  {index < section.data.length - 1 && (
+                    <View
+                      style={[
+                        styles.separator,
+                        { backgroundColor: sysSeparator },
+                      ]}
+                    />
+                  )}
+                </View>
+              ))}
+            </View>
+          </View>
+        ))}
+      </ScrollView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   contentContainer: {
     paddingBottom: spacing.xlarge,
+    paddingTop: spacing.medium
   },
+
+  sectionContainer: { marginBottom: spacing.sectionGap },
   sectionHeader: {
     fontSize: fontSizes.caption,
-    marginTop: spacing.large,
-    marginBottom: spacing.xs,
-    marginLeft: spacing.medium,
+    fontWeight: fontWeights.regular,
+    marginBottom: spacing.headerBottom,
+    marginLeft: spacing.large,
+    textTransform: "capitalize",
   },
+  sectionCard: {
+    marginHorizontal: spacing.medium,
+    borderRadius: borderRadii.settingsCard,
+    borderCurve: "continuous",
+    overflow: "hidden",
+  },
+
   row: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: spacing.medium,
-    paddingVertical: spacing.s_medium,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  rowIconContainer: {
-    width: spacing.iconContainer,
-    alignItems: "flex-start",
+    minHeight: spacing.rowMinHeight,
   },
   rowLabel: {
     flex: 1,
     fontSize: fontSizes.bodyLarge,
+    letterSpacing: letterSpacing.sfPro,
   },
-  rowRight: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  rowRight: { flexDirection: "row", alignItems: "center" },
   rowValue: {
     fontSize: fontSizes.bodyLarge,
+    marginRight: spacing.headerBottom // recycling the 6px gap safely
+  },
+
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: spacing.medium,
   },
 });

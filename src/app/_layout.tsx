@@ -24,8 +24,8 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={customTheme}>
       <Stack>
-        <Stack.Screen name="Index" options={{ title: "Inbox" }} />
-        <Stack.Screen name="Settings" options={{ title: "Settings" }} />
+        <Stack.Screen name="index" options={{ title: "Inbox" }} />
+        <Stack.Screen name="settings" options={{ title: "Settings" }} />
       </Stack>
     </ThemeProvider>
   );
