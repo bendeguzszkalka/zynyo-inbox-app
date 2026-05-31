@@ -7,7 +7,9 @@ const USER_EMAIL = process.env.EXPO_PUBLIC_USER_EMAIL;
 /**
  * Checks if a document state requires user action (needs signing).
  */
-export function isStateActionable(state: string): boolean {
+export function isStateActionable(state: string, userHasSigned?: boolean, userRole?: string): boolean {
+  if (userHasSigned) return false;
+  if (userRole === "RECEIVE" || userRole === "CC") return false;
   const normalized = state?.toUpperCase();
   return normalized === "NOT_VALIDATED" || normalized === "PARTIALLY_VALIDATED";
 }
@@ -15,13 +17,31 @@ export function isStateActionable(state: string): boolean {
 /**
  * Returns a friendly label and badge colors for any API state.
  */
-export function getFriendlyBadgeProps(state: string, badgeColors: any) {
+export function getFriendlyBadgeProps(state: string, badgeColors: any, userHasSigned?: boolean, userRole?: string, signatoryState?: string) {
   const s = (state || "UNKNOWN").toUpperCase();
+
+  // Rejected / Cancelled
+  if (signatoryState === "REJECTED" || s === "REJECTED") {
+    return { label: "Rejected", ...badgeColors.cancelled };
+  }
+  if (s === "CANCELLED") {
+    return { label: "Cancelled", ...badgeColors.cancelled };
+  }
+
+  // Copy Only roles
+  if (userRole === "RECEIVE" || userRole === "CC") {
+    return { label: "Copy Only", ...badgeColors.default };
+  }
 
   // Completed
   if (["SIGNED", "VALIDATED", "DOWNLOADED", "GROUP_COMPLETED"].includes(s)) {
     return { label: "Signed", ...badgeColors.signed };
   }
+  
+  if (userHasSigned && ["NOT_VALIDATED", "PARTIALLY_VALIDATED"].includes(s)) {
+    return { label: "Waiting on others", ...badgeColors.default };
+  }
+
   // Viewing / Opened
   if (["UUID_ACCESSED", "VIEWING", "VIEWED", "DOWNLOAD_ACCESSED"].includes(s)) {
     return { label: "Opened", ...badgeColors.toSign };
@@ -32,18 +52,11 @@ export function getFriendlyBadgeProps(state: string, badgeColors: any) {
   }
   // Pending
   if (["NOT_VALIDATED", "PARTIALLY_VALIDATED", "NOT_INVITED", "AWAIT_EMAIL"].includes(s)) {
-    return { label: "Pending", ...badgeColors.toSign };
+    return { label: "To Sign", ...badgeColors.toSign };
   }
   // Failed
   if (["AUTHENTICATION_FAILED", "ERROR", "E_EMAIL"].includes(s)) {
     return { label: "Failed", ...badgeColors.failed };
-  }
-  // Rejected / Cancelled
-  if (s === "REJECTED") {
-    return { label: "Rejected", ...badgeColors.cancelled };
-  }
-  if (s === "CANCELLED") {
-    return { label: "Cancelled", ...badgeColors.cancelled };
   }
   // Misc
   if (["REPLACED", "DELEGATED"].includes(s)) {
@@ -126,9 +139,18 @@ export async function fetchIncomingSignRequests(): Promise<InboxItem[]> {
   const mapped: InboxItem[] = data.map((doc: any) => {
     const sender = doc.signRequest?.submitterName || doc.signRequest?.submitter || "Unknown Submitter";
     const timestamp = doc.stateChangedDate || doc.signRequest?.createdAt || Date.now();
+    const signatory = doc.signatories?.find((s: any) => s.email?.toLowerCase() === USER_EMAIL?.toLowerCase());
+    
+    const userHasSigned = signatory?.state === "VALIDATED" || doc.documentState === "SIGNED" || doc.documentState === "VALIDATED";
+    const userRole = signatory?.signatoryRole || "SIGN";
+    const signatoryState = signatory?.state || "UNKNOWN";
 
     return {
       id: doc.documentUUID || Math.random().toString(),
+      signatoryId: signatory?.publicUUID || doc.documentUUID,
+      userHasSigned,
+      userRole,
+      signatoryState,
       sender,
       message: doc.name || "Untitled Document",
       state: doc.documentState || "UNKNOWN",
@@ -140,8 +162,8 @@ export async function fetchIncomingSignRequests(): Promise<InboxItem[]> {
 
   // Sort: Actionable first, then sort by timestamp descending (newest first)
   return mapped.sort((a, b) => {
-    const actA = isStateActionable(a.state);
-    const actB = isStateActionable(b.state);
+    const actA = isStateActionable(a.state, a.userHasSigned, a.userRole);
+    const actB = isStateActionable(b.state, b.userHasSigned, b.userRole);
 
     if (actA && !actB) return -1;
     if (!actA && actB) return 1;

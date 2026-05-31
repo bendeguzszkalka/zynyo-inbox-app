@@ -38,6 +38,7 @@ import { usePreferences } from "../context/PreferencesContext";
 import {
   fetchIncomingSignRequests,
   getFriendlyBadgeProps,
+  isStateActionable,
 } from "../services/zynyo";
 
 // Enable LayoutAnimation on Android
@@ -149,7 +150,8 @@ export default function InboxScreen() {
   // ─── Render helpers ────────────────────────────────────────────────────────
 
   const renderMessage = ({ item }: { item: InboxItem }) => {
-    const badge = getFriendlyBadgeProps(item.state, themeColors.badge);
+    const isActionable = isStateActionable(item.state, item.userHasSigned, item.userRole);
+    const badge = getFriendlyBadgeProps(item.state, themeColors.badge, item.userHasSigned, item.userRole, item.signatoryState);
 
     const cleanDescription = item.description
       ? item.description.replace(/<[^>]*>/g, "").trim()

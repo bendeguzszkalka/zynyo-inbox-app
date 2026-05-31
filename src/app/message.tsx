@@ -44,7 +44,7 @@ export default function MessageScreen() {
     ? item.description.replace(/<[^>]*>/g, "").trim()
     : "";
 
-  const badge = getFriendlyBadgeProps(item.state, themeColors.badge);
+  const badge = getFriendlyBadgeProps(item.state, themeColors.badge, item.userHasSigned, item.userRole, item.signatoryState);
 
   return (
     <>
@@ -99,20 +99,52 @@ export default function MessageScreen() {
           </View>
         </View>
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.openBrowserButton,
-            { backgroundColor: themeColors.primary },
-            pressed && { opacity: 0.8 }
-          ]}
-          onPress={() => {
-            const baseUrl = (process.env.EXPO_PUBLIC_API_URL || "https://sandbox.zynyo.com").replace("/api/rest/v4", "");
-            WebBrowser.openBrowserAsync(`${baseUrl}/document/${item.id}`);
-          }}
-        >
-          <Ionicons name="globe-outline" size={iconSizes.medium || 20} color="#FFFFFF" style={{ marginRight: spacing.small }} />
-          <Text style={styles.openBrowserButtonText}>Open in Browser</Text>
-        </Pressable>
+        {item.signatoryState === "REJECTED" ? (
+          <View style={[styles.openBrowserButton, { backgroundColor: themeColors.settings.pressed }]}>
+            <Ionicons name="close-circle" size={iconSizes.medium || 20} color={themeColors.destructive} style={{ marginRight: spacing.small }} />
+            <Text style={[styles.openBrowserButtonText, { color: themeColors.destructive }]}>You have rejected this document</Text>
+          </View>
+        ) : item.state === "CANCELLED" ? (
+          <View style={[styles.openBrowserButton, { backgroundColor: themeColors.settings.pressed }]}>
+            <Ionicons name="ban" size={iconSizes.medium || 20} color={themeColors.text} style={{ marginRight: spacing.small }} />
+            <Text style={[styles.openBrowserButtonText, { color: themeColors.text }]}>This document was cancelled</Text>
+          </View>
+        ) : item.userHasSigned ? (
+          <View style={[styles.openBrowserButton, { backgroundColor: themeColors.settings.pressed }]}>
+            <Ionicons name="checkmark-circle" size={iconSizes.medium || 20} color={themeColors.success} style={{ marginRight: spacing.small }} />
+            <Text style={[styles.openBrowserButtonText, { color: themeColors.success }]}>You have signed this document</Text>
+          </View>
+        ) : item.userRole === "RECEIVE" || item.userRole === "CC" ? (
+          <Pressable
+            style={({ pressed }) => [
+              styles.openBrowserButton,
+              { backgroundColor: themeColors.primary },
+              pressed && { opacity: 0.8 }
+            ]}
+            onPress={() => {
+              const baseUrl = (process.env.EXPO_PUBLIC_API_URL || "https://sandbox.zynyo.com").replace("/api/rest/v4", "");
+              WebBrowser.openBrowserAsync(`${baseUrl}/sign/${item.signatoryId || item.id}`);
+            }}
+          >
+            <Ionicons name="eye-outline" size={iconSizes.medium || 20} color="#FFFFFF" style={{ marginRight: spacing.small }} />
+            <Text style={styles.openBrowserButtonText}>Open in Browser to View</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            style={({ pressed }) => [
+              styles.openBrowserButton,
+              { backgroundColor: themeColors.primary },
+              pressed && { opacity: 0.8 }
+            ]}
+            onPress={() => {
+              const baseUrl = (process.env.EXPO_PUBLIC_API_URL || "https://sandbox.zynyo.com").replace("/api/rest/v4", "");
+              WebBrowser.openBrowserAsync(`${baseUrl}/sign/${item.signatoryId || item.id}`);
+            }}
+          >
+            <Ionicons name="globe-outline" size={iconSizes.medium || 20} color="#FFFFFF" style={{ marginRight: spacing.small }} />
+            <Text style={styles.openBrowserButtonText}>Open in Browser to Sign</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </>
   );

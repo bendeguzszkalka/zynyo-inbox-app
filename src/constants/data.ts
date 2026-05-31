@@ -7,6 +7,10 @@ export interface InboxItem {
   description: string;
   date: number;
   formattedDate: string;
+  signatoryId?: string;
+  userHasSigned?: boolean;
+  userRole?: string;
+  signatoryState?: string;
 }
 
 export const INBOX_DATA: InboxItem[] = [];
