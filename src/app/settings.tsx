@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Link, Stack } from "expo-router";
+import { Link, Stack, useRouter } from "expo-router";
 import {
   ActionSheetIOS,
   Alert,
@@ -26,6 +26,7 @@ import { usePreferences } from "../context/PreferencesContext";
 
 export default function SettingsScreen() {
   const { preferences, updatePreference, themeColors } = usePreferences();
+  const router = useRouter();
 
   const dynamicSections = SETTINGS_SECTIONS.map((section) => ({
     ...section,
@@ -47,14 +48,20 @@ export default function SettingsScreen() {
             title: "Inbox Density",
           },
           (buttonIndex) => {
-            if (buttonIndex === 0) updatePreference("density", "Compact");
-            if (buttonIndex === 1) updatePreference("density", "Comfortable");
+            if (buttonIndex === 0) {
+              updatePreference("density", "Compact");
+              router.back();
+            }
+            if (buttonIndex === 1) {
+              updatePreference("density", "Comfortable");
+              router.back();
+            }
           }
         );
       } else {
         Alert.alert("Inbox Density", "", [
-          { text: "Compact", onPress: () => updatePreference("density", "Compact") },
-          { text: "Comfortable", onPress: () => updatePreference("density", "Comfortable") },
+          { text: "Compact", onPress: () => { updatePreference("density", "Compact"); router.back(); } },
+          { text: "Comfortable", onPress: () => { updatePreference("density", "Comfortable"); router.back(); } },
           { text: "Cancel", style: "cancel" },
         ]);
       }

@@ -61,12 +61,6 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     title: "Appearance & Behavior",
     data: [
       {
-        id: "swipe",
-        label: "Swipe Actions",
-        icon: "swap-horizontal-outline",
-        type: "link",
-      },
-      {
         id: "density",
         label: "Inbox Density",
         icon: "list-outline",

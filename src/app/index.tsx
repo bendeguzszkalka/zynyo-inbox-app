@@ -157,6 +157,8 @@ export default function InboxScreen() {
       ? item.description.replace(/<[^>]*>/g, "").trim()
       : "";
 
+    const isCompact = preferences.density === "Compact";
+
     return (
       <Link
         href={{ pathname: "/message", params: { data: JSON.stringify(item) } }}
@@ -169,7 +171,7 @@ export default function InboxScreen() {
                 styles.messageRow,
 
                 {
-                  paddingVertical: verticalPadding,
+                  paddingVertical: isCompact ? spacing.small : verticalPadding,
                   borderBottomColor: themeColors.border,
                 },
 
@@ -181,87 +183,122 @@ export default function InboxScreen() {
             >
               <View
                 style={{
-                  marginTop: spacing.small,
+                  marginTop: isCompact ? 0 : spacing.small,
                   marginBottom: 0,
                   marginHorizontal: spacing.xs,
+                  flexDirection: isCompact ? "row" : "column",
+                  alignItems: isCompact ? "center" : "stretch",
                 }}
               >
-                <View style={styles.headerRow}>
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      styles.senderText,
-                      {
-                        color: themeColors.settings.labelText,
-                        flex: 1,
-                        marginRight: spacing.small,
-                      },
-                    ]}
-                  >
-                    {item.sender}
-                  </Text>
-
-                  <View
-                    style={[
-                      styles.badge,
-                      { backgroundColor: badge.background },
-                    ]}
-                  >
-                    <Text style={[styles.badgeText, { color: badge.text }]}>
-                      {badge.label}
+                {isCompact ? (
+                  <>
+                    <Text
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                      style={[
+                        styles.messageText,
+                        {
+                          color: themeColors.text,
+                          flex: 1,
+                          marginRight: spacing.small,
+                          marginBottom: 0,
+                        },
+                      ]}
+                    >
+                      {item.message}
                     </Text>
-                  </View>
-                </View>
 
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: spacing.small,
-                  }}
-                >
-                  <Text
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    style={[
-                      styles.messageText,
-                      {
-                        color: themeColors.text,
-                        flex: 1,
-                        marginRight: spacing.small,
-                        marginBottom: 0,
-                      },
-                    ]}
-                  >
-                    {item.message}
-                  </Text>
+                    <View
+                      style={[
+                        styles.badge,
+                        { backgroundColor: badge.background },
+                      ]}
+                    >
+                      <Text style={[styles.badgeText, { color: badge.text }]}>
+                        {badge.label}
+                      </Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.headerRow}>
+                      <Text
+                        numberOfLines={1}
+                        style={[
+                          styles.senderText,
+                          {
+                            color: themeColors.settings.labelText,
+                            flex: 1,
+                            marginRight: spacing.small,
+                          },
+                        ]}
+                      >
+                        {item.sender}
+                      </Text>
 
-                  <Text
-                    style={[
-                      styles.dateText,
-                      { color: themeColors.settings.valueText },
-                    ]}
-                  >
-                    {item.formattedDate}
-                  </Text>
-                </View>
+                      <View
+                        style={[
+                          styles.badge,
+                          { backgroundColor: badge.background },
+                        ]}
+                      >
+                        <Text style={[styles.badgeText, { color: badge.text }]}>
+                          {badge.label}
+                        </Text>
+                      </View>
+                    </View>
 
-                <Text
-                  numberOfLines={2}
-                  ellipsizeMode="tail"
-                  style={[
-                    styles.descriptionText,
-                    { color: themeColors.settings.valueText, height: 36 },
-                  ]}
-                >
-                  {cleanDescription}
-                </Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: spacing.small,
+                      }}
+                    >
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        style={[
+                          styles.messageText,
+                          {
+                            color: themeColors.text,
+                            flex: 1,
+                            marginRight: spacing.small,
+                            marginBottom: 0,
+                          },
+                        ]}
+                      >
+                        {item.message}
+                      </Text>
+
+                      <Text
+                        style={[
+                          styles.dateText,
+                          { color: themeColors.settings.valueText },
+                        ]}
+                      >
+                        {item.formattedDate}
+                      </Text>
+                    </View>
+
+                    <Text
+                      numberOfLines={2}
+                      ellipsizeMode="tail"
+                      style={[
+                        styles.descriptionText,
+                        { color: themeColors.settings.valueText, height: 36 },
+                      ]}
+                    >
+                      {cleanDescription}
+                    </Text>
+                  </>
+                )}
               </View>
-            </View>
-          )}
-        </Pressable>
-      </Link>
+              </View>
+            )}
+          </Pressable>
+        </Link>
     );
   };
 
